@@ -1,269 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Mapa de Acordes</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin:0; padding:0; }
-  body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #fff;
-    display: flex;
-    justify-content: center;
-    padding: 40px 20px;
-  }
-
-  #workspace {
-    max-width: 1920px;
-    width: 100%;
-    min-height: 1080px;
-    background-color: #fff;
-    padding: 60px 40px 40px 40px;
-    overflow-y: auto;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-radius: 16px;
-    margin: 0 auto;
-  }
-
-  #title {
-    font-size: 52px;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 10px;
-    outline: none;
-  }
-
-  #subtitle {
-    font-size: 28px;
-    font-weight: 400;
-    text-align: center;
-    margin-bottom: 40px;
-    outline: none;
-    color: #555;
-  }
-
-  .chord-row {
-    display: grid;
-    grid-template-columns: 200px repeat(6, 1fr);
-    align-items: center;
-    margin-bottom: 24px; /* espaciado vertical uniforme */
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e0e0e0;
-  }
-
-  .chord-box {
-    background-color: #f8f8f8;
-    border-radius: 12px;
-    padding: 12px 20px; /* más espacio interno horizontal */
-    text-align: center;
-    font-size: 22px;
-    font-weight: 600;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    outline: none;
-    min-height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 24px; /* separación de la primera nota */
-  }
-
-  .note-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-left: 1px solid #e0e0e0;
-    padding: 0 12px; /* separación horizontal */
-    min-width: 100px;
-  }
-
-  .note-container:first-child {
-    border-left: none;
-    padding-left: 0;
-  }
-
-  .degree {
-    background-color: #e0e0e0;
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: center;
-    line-height: 28px;
-    border-radius: 4px;
-    cursor: text;
-    margin-bottom: 6px; /* espacio entre grado y nota */
-  }
-
-  .note-select {
-    width: 80px;
-    height: 40px;
-    font-size: 18px;
-    text-align: center;
-    text-align-last: center;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background-color: #fafafa;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 4px;
-    transition: all 0.2s ease;
-  }
-
-  .note-select:focus {
-    border-color: #999;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-  }
-
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-
-  .action-btn {
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 600;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background-color: #f0f0f0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-
-  .action-btn:hover { background-color: #e0e0e0; }
-
-  #add-row {
-    width: 40px;
-    height: 40px;
-    font-size: 28px;
-    line-height: 28px;
-    text-align: center;
-    border-radius: 50%;
-    background-color: #f0f0f0;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    transition: all 0.2s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #add-row:hover { background-color: #e0e0e0; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#263e37">
+  <title>Mapa de Acordes</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-
-<div id="workspace">
-  <div id="title" contenteditable="true">Mapa de Acordes</div>
-  <div id="subtitle" contenteditable="true"></div>
-
-  <div class="actions">
-    <button class="action-btn" onclick="exportPDF()">Exportar PDF</button>
-    <button class="action-btn" onclick="exportPNG()">Exportar PNG</button>
-  </div>
-
-  <div id="chords-container"></div>
-
-  <div style="display:flex; justify-content:center; margin-top:20px;">
-    <button id="add-row" onclick="addChordRow()">+</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-  const notes = [
-    "C","B#","C#","Db","D","C##","D#","Eb","E","Fb","F","E#",
-    "F#","Gb","G","F##","G#","Ab","A","G##","A#","Bb","B","Cb"
-  ];
-
-  const chordsContainer = document.getElementById('chords-container');
-
-  function createChordRow() {
-    const row = document.createElement('div');
-    row.className = 'chord-row';
-
-    const chordBox = document.createElement('div');
-    chordBox.className = 'chord-box';
-    chordBox.contentEditable = true;
-    row.appendChild(chordBox);
-
-    for(let i=0;i<6;i++){
-      const noteContainer = document.createElement('div');
-      noteContainer.className = 'note-container';
-
-      const degree = document.createElement('div');
-      degree.className = 'degree';
-      degree.contentEditable = true;
-      noteContainer.appendChild(degree);
-
-      const select = document.createElement('select');
-      select.className = 'note-select';
-      const defaultOption = document.createElement('option');
-      defaultOption.value = '';
-      defaultOption.text = '';
-      select.appendChild(defaultOption);
-      notes.forEach(n => {
-        const option = document.createElement('option');
-        option.value = n;
-        option.text = n;
-        select.appendChild(option);
-      });
-      noteContainer.appendChild(select);
-
-      row.appendChild(noteContainer);
-    }
-
-    return row;
-  }
-
-  function addChordRow(){
-    chordsContainer.appendChild(createChordRow());
-  }
-
-  for(let i=0;i<3;i++){
-    addChordRow();
-  }
-
-  async function exportPDF(){
-    toggleControls(false);
-    const canvas = await html2canvas(document.getElementById('workspace'));
-    const imgData = canvas.toDataURL('image/png');
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [canvas.width, canvas.height]
-    });
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save('MapaAcordes.pdf');
-    toggleControls(true);
-  }
-
-  async function exportPNG(){
-    toggleControls(false);
-    const canvas = await html2canvas(document.getElementById('workspace'));
-    const link = document.createElement('a');
-    link.download = 'MapaAcordes.png';
-    link.href = canvas.toDataURL();
-    link.click();
-    toggleControls(true);
-  }
-
-  function toggleControls(show){
-    document.querySelectorAll('.action-btn, #add-row').forEach(el => {
-      el.style.display = show ? 'inline-flex' : 'none';
-    });
-  }
-</script>
+  <header class="toolbar">
+    <a class="brand" href="./" aria-label="Mapa de Acordes, inicio"><span aria-hidden="true">♮</span> Estudio de acordes</a>
+    <div class="actions">
+      <button id="export-pdf" type="button">Imprimir / PDF</button>
+      <button id="export-png" class="primary" type="button">Descargar PNG <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+  <main id="workspace">
+    <div class="eyebrow">TU MÚSICA, NOTA A NOTA</div>
+    <input id="title" aria-label="Título del mapa" maxlength="100" value="Mapa de Acordes">
+    <input id="subtitle" aria-label="Subtítulo del mapa" maxlength="160" placeholder="Añade una canción, una tonalidad o una idea…">
+    <div class="sheet-heading"><span>ACORDE</span><span>GRADOS Y NOTAS</span></div>
+    <div id="chords-container" aria-label="Acordes"></div>
+    <button id="add-row" type="button"><span aria-hidden="true">＋</span> Añadir acorde</button>
+    <footer><span>Un espacio para explorar armonías.</span><span id="row-count"></span></footer>
+  </main>
+  <p id="status" role="status" aria-live="polite"></p>
 </body>
 </html>
